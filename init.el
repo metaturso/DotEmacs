@@ -18,6 +18,7 @@ key bindings.")
 (defvar metaturso-grammarian-minor-mode-map
   (let ((grammarian-map (make-sparse-keymap)))
     (define-key grammarian-map (kbd "C-c t") 'semantic-lex-test)
+    (define-key grammarian-map (kbd "<f5>") 'metaturso-grammarian-bovinate-reparse-buffer)
     (define-key grammarian-map (kbd "C-c l") 'semantic-lex-debug)
     (define-key grammarian-map (kbd "C-c a") 'semantic-analyze-current-context)
     grammarian-map)
@@ -40,6 +41,13 @@ Key Bindings:
   :init-value nil :lighter " Grammarian" :keymap metaturso-grammarian-minor-mode-map
   (semantic-mode)
   (setq wisent-verbose-flag t))
+
+(defun metaturso-grammarian-bovinate-reparse-buffer nil
+  "Bovinate the entire buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (bovinate -1)))
 
 ;;;###autoload
 (define-globalized-minor-mode metaturso-minor-mode metaturso-minor-mode t)
