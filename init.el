@@ -9,6 +9,8 @@ directory, based on the system wheren Emacs is running.")
 (defvar metaturso-minor-mode-map
   (let ((metaturso-map (make-sparse-keymap)))
     (define-key metaturso-map [remap list-buffers] 'buffer-menu)
+    ;; Replace C-h C-f with a Emacs self-documenting function finder.
+    (define-key metaturso-map [remap view-emacs-FAQ] 'find-function)
     metaturso-map)
   "One keymap to rule them all, or close to. This keymap should contain general Emacs
 key bindings.")
@@ -61,9 +63,14 @@ one or more functions to respond to the event."
 	initial-scratch-message nil
 	default-directory metaturso-default-directory))
 
+(defun metaturso-keyword-highlighter nil
+  "Customise the face of TODO, FIXME and NEXT to make them stand out."
+    (font-lock-add-keywords nil '(("\\<\\(TODO\\|FIXME\\|NEXT\\):" 1 font-lock-warning-face t))))
+
 (add-hook 'before-save-hook 'metaturso-before-save-hook)
 (add-hook 'json-mode-hook 'metaturso-grammarian-minor-mode)
 (add-hook 'after-init-hook 'metaturso-after-init-hook)
 (add-hook 'wisent-grammar-mode-hook 'semantic-mode)
+(add-hook 'prog-mode 'metaturso-keyword-highlighter)
 
 (provide 'metaturso-minor-mode)
