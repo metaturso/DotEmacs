@@ -1,8 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
-(defvar metaturso-default-directory
-  (cond ((string= 'windows-nt system-type) "~/Documents")
-	((string-prefix-p "gnu" (symbol-name system-type)) "~"))
+(defvar metaturso-default-directory "~"
   "The value of this variable is used to set `default-directory' to the least annoying
 directory, based on the system wheren Emacs is running.")
 
@@ -109,20 +107,25 @@ one or more functions to respond to the event."
   ;; Add mode associations.
   (cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
 
-  ;; This should deter Emacs from using Windows line endings.
-  (setq-default buffer-file-coding-system 'utf-8-unix)
-
   ;; Customise Emacs variables.
   (setq inhibit-startup-message t
 	initial-scratch-message nil
 	default-directory metaturso-default-directory))
 
+(defun metaturso-windows-after-init-hook nil
+  (setq metaturso-default-directory "~/Documents/Development")
+  ;; This should deter Emacs from using Windows line endings.
+  (setq-default buffer-file-coding-system 'utf-8-unix))
+
 (defun metaturso-keyword-highlighter nil
   "Customise the face of TODO, FIXME and NEXT to make them stand out."
     (font-lock-add-keywords nil '(("\\<\\(TODO\\|FIXME\\|NEXT\\):" 1 font-lock-warning-face t))))
 
+(when (string= 'windows-nt system-type)
+  (add-hook 'after-init-hook 'metaturso-windows-after-init-hook))
+(add-hook 'after-init-hook 'metaturso-after-init-hook nil)
+
 (add-hook 'before-save-hook 'metaturso-before-save-hook)
-(add-hook 'after-init-hook 'metaturso-after-init-hook)
 (add-hook 'wisent-grammar-mode-hook 'semantic-mode)
 (add-hook 'prog-mode 'metaturso-keyword-highlighter)
 
