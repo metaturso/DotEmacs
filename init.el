@@ -19,6 +19,7 @@ key bindings.")
   (let ((grammarian-map (make-sparse-keymap)))
     (define-key grammarian-map (kbd "C-c t") 'semantic-lex-test)
     (define-key grammarian-map (kbd "<f5>") 'metaturso-grammarian-bovinate-reparse-buffer)
+    (define-key grammarian-map (kbd "S-<f9>") 'metaturso-grammarian-compile-grammar)
     (define-key grammarian-map (kbd "C-c l") 'semantic-lex-debug)
     (define-key grammarian-map (kbd "C-c a") 'semantic-analyze-current-context)
     grammarian-map)
@@ -49,6 +50,16 @@ Key Bindings:
     (goto-char (point-min))
     (bovinate -1)))
 
+(defun metaturso-grammarian-compile-grammar nil
+  "Compiles and reloads the grammar by evaluating the resulting lisp code."
+  (interactive)
+  (save-excursion
+    (semantic-grammar-create-package t)
+    (eval-buffer)
+    (kill-buffer)
+    (delete-window))
+  )
+
 ;;;###autoload
 (define-globalized-minor-mode metaturso-minor-mode metaturso-minor-mode t)
 
@@ -60,13 +71,25 @@ the buffer is saved to its file."
 (defun metaturso-before-save-hook ()
   "A generic before-save hook used. Checks the current major-mode before calling
 one or more functions to respond to the event."
-  (when (derived-mode-p 'prog-mode)
+  (when (or (derived-mode-p 'prog-mode)
+	    (equal 'wisent-grammar-mode major-mode))
     (metaturso-before-save-prog-hook)))
 
 (defun metaturso-after-init-hook ()
   "Misc configuration that needs to run as soon as Emacs starts."
-  (show-paren-mode 1)
+  ;; Activate or disable global minor modes.
+  (show-paren-mode)
+  (blink-cursor-mode -1)
 
+  ;; Record window actions and undo/redo with C-{left,right}.
+  (winner-mode)
+  ;; Move between adjacent windows with M-{left,up,right,down}
+  (windmove-default-keybindings 'meta)
+
+  ;; Add mode associations.
+  (cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
+
+  ;; Customise Emacs variables.
   (setq inhibit-startup-message t
 	initial-scratch-message nil
 	default-directory metaturso-default-directory))
@@ -76,9 +99,13 @@ one or more functions to respond to the event."
     (font-lock-add-keywords nil '(("\\<\\(TODO\\|FIXME\\|NEXT\\):" 1 font-lock-warning-face t))))
 
 (add-hook 'before-save-hook 'metaturso-before-save-hook)
-(add-hook 'json-mode-hook 'metaturso-grammarian-minor-mode)
 (add-hook 'after-init-hook 'metaturso-after-init-hook)
 (add-hook 'wisent-grammar-mode-hook 'semantic-mode)
 (add-hook 'prog-mode 'metaturso-keyword-highlighter)
+
+;; For grammar development
+(add-hook 'wisent-grammar-mode-hook 'metaturso-grammarian-minor-mode)
+(add-hook 'json-mode-hook 'metaturso-grammarian-minor-mode)
+(add-hook 'php-mode-hook 'metaturso-grammarian-minor-mode)
 
 (provide 'metaturso-minor-mode)
