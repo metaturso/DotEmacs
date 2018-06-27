@@ -1,8 +1,8 @@
 ;; -*- lexical-binding: t; -*-
 
 (defvar metaturso-default-directory
-  (cond ((string= system-type "windows-nt") "~/Documents")
-	((string-prefix-p "gnu" system-type) "~"))
+  (cond ((string= 'windows-nt system-type) "~/Documents")
+	((string-prefix-p "gnu" (symbol-name system-type)) "~"))
   "The value of this variable is used to set `default-directory' to the least annoying
 directory, based on the system wheren Emacs is running.")
 
