@@ -10,6 +10,7 @@ directory, based on the system wheren Emacs is running.")
   (let ((metaturso-map (make-sparse-keymap)))
     (define-key metaturso-map [remap list-buffers] 'buffer-menu)
     ;; Replace C-h C-f with a Emacs self-documenting function finder.
+    (define-key metaturso-map [remap other-window] 'other-window-or-prompt)
     (define-key metaturso-map [remap view-emacs-FAQ] 'find-function)
     metaturso-map)
   "One keymap to rule them all, or close to. This keymap should contain general Emacs
@@ -24,6 +25,25 @@ key bindings.")
     (define-key grammarian-map (kbd "C-c a") 'semantic-analyze-current-context)
     grammarian-map)
   "The grammarian minor mode keymap binds helpful lexer and grammar functions.")
+
+(defun other-window-or-prompt (count &optional all-frames)
+  "Calls `other-window' as you'd expect from \\[C-x o] with the exception when
+there is an active prompt. In this case the minibuffer
+window will become active. If the prompt was active on a different frame than
+the current one that frame will be gain focus."
+  (interactive "p")
+  (if (minibuffer-prompt)
+      (unwind-protect
+	  (let* ((minibuf (active-minibuffer-window))
+		 (minibuf-frame (window-frame minibuf)))
+
+	    (unless (equal minibuf-frame (selected-frame))
+	      (select-frame minibuf-frame)
+	      (raise-frame minibuf-frame))
+
+	    (when (window-live-p minibuf)
+	      (select-window minibuf))))
+    (other-window count all-frames)))
 
 ;;;###autoload
 (define-minor-mode metaturso-minor-mode
@@ -88,6 +108,9 @@ one or more functions to respond to the event."
 
   ;; Add mode associations.
   (cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
+
+  ;; This should deter Emacs from using Windows line endings.
+  (setq-default buffer-file-coding-system 'utf-8-unix)
 
   ;; Customise Emacs variables.
   (setq inhibit-startup-message t
