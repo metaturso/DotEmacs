@@ -1,9 +1,5 @@
 ;; -*- lexical-binding: t; -*-
 
-(defvar metaturso-default-directory "~"
-  "The value of this variable is used to set `default-directory' to the least annoying
-directory, based on the system wheren Emacs is running.")
-
 (defvar metaturso-minor-mode-map
   (let ((metaturso-map (make-sparse-keymap)))
     (define-key metaturso-map [remap list-buffers] 'buffer-menu)
@@ -110,10 +106,11 @@ one or more functions to respond to the event."
   ;; Customise Emacs variables.
   (setq inhibit-startup-message t
 	initial-scratch-message nil
-	default-directory metaturso-default-directory))
+	default-directory "~"))
 
 (defun metaturso-windows-after-init-hook nil
-  (setq metaturso-default-directory "~/Documents/Development")
+  "Windows configuration."
+  (setq default-directory "~/Documents/Development/")
   ;; This should deter Emacs from using Windows line endings.
   (setq-default buffer-file-coding-system 'utf-8-unix))
 
@@ -123,7 +120,8 @@ one or more functions to respond to the event."
 
 (when (string= 'windows-nt system-type)
   (add-hook 'after-init-hook 'metaturso-windows-after-init-hook))
-(add-hook 'after-init-hook 'metaturso-after-init-hook nil)
+
+(add-hook 'after-init-hook 'metaturso-after-init-hook)
 
 (add-hook 'before-save-hook 'metaturso-before-save-hook)
 (add-hook 'wisent-grammar-mode-hook 'semantic-mode)
