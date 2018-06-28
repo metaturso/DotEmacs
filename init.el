@@ -106,7 +106,7 @@ one or more functions to respond to the event."
   ;; Customise Emacs variables.
   (setq inhibit-startup-message t
 	initial-scratch-message nil
-	default-directory "~"))
+	default-directory "~/"))
 
 (defun metaturso-windows-after-init-hook nil
   "Windows configuration."
