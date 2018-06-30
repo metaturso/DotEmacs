@@ -1,4 +1,5 @@
 ;; -*- lexical-binding: t; -*-
+(require 'cl-lib)
 
 (defvar metaturso-minor-mode-map
   (let ((metaturso-map (make-sparse-keymap)))
@@ -10,69 +11,12 @@
   "One keymap to rule them all, or close to. This keymap should contain general Emacs
 key bindings.")
 
-(defvar metaturso-grammarian-minor-mode-map
-  (let ((grammarian-map (make-sparse-keymap)))
-    (define-key grammarian-map (kbd "C-c t") 'semantic-lex-test)
-    (define-key grammarian-map (kbd "<f5>") 'metaturso-grammarian-bovinate-reparse-buffer)
-    (define-key grammarian-map (kbd "S-<f9>") 'metaturso-grammarian-compile-grammar)
-    (define-key grammarian-map (kbd "C-c l") 'semantic-lex-debug)
-    (define-key grammarian-map (kbd "C-c a") 'semantic-analyze-current-context)
-    grammarian-map)
-  "The grammarian minor mode keymap binds helpful lexer and grammar functions.")
-
-(defun other-window-or-prompt (count &optional all-frames)
-  "Calls `other-window' as you'd expect from \\[C-x o] with the exception when
-there is an active prompt. In this case the minibuffer
-window will become active. If the prompt was active on a different frame than
-the current one that frame will be gain focus."
-  (interactive "p")
-  (if (minibuffer-prompt)
-      (unwind-protect
-	  (let* ((minibuf (active-minibuffer-window))
-		 (minibuf-frame (window-frame minibuf)))
-
-	    (unless (equal minibuf-frame (selected-frame))
-	      (select-frame minibuf-frame)
-	      (raise-frame minibuf-frame))
-
-	    (when (window-live-p minibuf)
-	      (select-window minibuf))))
-    (other-window count all-frames)))
-
 ;;;###autoload
 (define-minor-mode metaturso-minor-mode
   "A global minor mode to centralise all of metaturso's Emacs customisations.
 
-Key Bindings:
-
 \\{metaturso-minor-mode-map}"
   :init-value t :global t :lighter nil)
-
-;;;###autoload
-(define-minor-mode metaturso-grammarian-minor-mode
-  "A minor mode to streamline and simplify my Wisent grammar development workflow
-
-\\{metaturso-grammarian-minor-mode-map}"
-  :init-value nil :lighter " Grammarian" :keymap metaturso-grammarian-minor-mode-map
-  (semantic-mode)
-  (setq wisent-verbose-flag t))
-
-(defun metaturso-grammarian-bovinate-reparse-buffer nil
-  "Bovinate the entire buffer."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (bovinate -1)))
-
-(defun metaturso-grammarian-compile-grammar nil
-  "Compiles and reloads the grammar by evaluating the resulting lisp code."
-  (interactive)
-  (save-excursion
-    (semantic-grammar-create-package t)
-    (eval-buffer)
-    (kill-buffer)
-    (delete-window))
-  )
 
 ;;;###autoload
 (define-globalized-minor-mode metaturso-minor-mode metaturso-minor-mode t)
@@ -114,20 +58,41 @@ one or more functions to respond to the event."
   ;; This should deter Emacs from using Windows line endings.
   (setq-default buffer-file-coding-system 'utf-8-unix))
 
-(defun metaturso-keyword-highlighter nil
-  "Customise the face of TODO, FIXME and NEXT to make them stand out."
-    (font-lock-add-keywords nil '(("\\<\\(TODO\\|FIXME\\|NEXT\\):" 1 font-lock-warning-face t))))
+(defun other-window-or-prompt (count &optional all-frames)
+  "Calls `other-window' as you'd expect from \\[C-x o] with the exception when
+there is an active prompt. In this case the minibuffer
+window will become active. If the prompt was active on a different frame than
+the current one that frame will be gain focus."
+  (interactive "p")
+  (if (minibuffer-prompt)
+      (unwind-protect
+	  (let* ((minibuf (active-minibuffer-window))
+		 (minibuf-frame (window-frame minibuf)))
 
+	    (unless (equal minibuf-frame (selected-frame))
+	      (select-frame minibuf-frame)
+	      (raise-frame minibuf-frame))
+
+	    (when (window-live-p minibuf)
+	      (select-window minibuf))))
+    (other-window count all-frames)))
+
+;;; Initialisation Code
+(let ((default-directory  "~/.emacs.d/")
+      (lexical-binding nil))
+  (normal-top-level-add-to-load-path '("lisp")))
+
+;; Windows-specific initialisation hook.
 (when (string= 'windows-nt system-type)
   (add-hook 'after-init-hook 'metaturso-windows-after-init-hook))
 
 (add-hook 'after-init-hook 'metaturso-after-init-hook)
-
 (add-hook 'before-save-hook 'metaturso-before-save-hook)
 (add-hook 'wisent-grammar-mode-hook 'semantic-mode)
 (add-hook 'prog-mode 'metaturso-keyword-highlighter)
 
 ;; For grammar development
+(require 'metaturso-grammarian-minor-mode "grammarian-minor-mode.el")
 (add-hook 'wisent-grammar-mode-hook 'metaturso-grammarian-minor-mode)
 (add-hook 'json-mode-hook 'metaturso-grammarian-minor-mode)
 (add-hook 'php-mode-hook 'metaturso-grammarian-minor-mode)

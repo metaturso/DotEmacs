@@ -1,3 +1,5 @@
 auto-savelist/
 *~
 .*#
+*.elc
+eshell/
