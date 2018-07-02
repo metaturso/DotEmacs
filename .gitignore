@@ -3,3 +3,5 @@ auto-savelist/
 .*#
 *.elc
 eshell/
+elpa/
+ede-projects.el
