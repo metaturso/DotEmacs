@@ -6,9 +6,11 @@
 
 (defvar metaturso-minor-mode-map
   (let ((metaturso-map (make-sparse-keymap)))
+    ;; Use buffer-menu instead of list-buffers since it opens in the same window.
     (define-key metaturso-map [remap list-buffers] 'buffer-menu)
     ;; Replace C-h C-f with a Emacs self-documenting function finder.
     (define-key metaturso-map [remap other-window] 'other-window-or-prompt)
+    (define-key metaturso-map [remap move-beginning-of-line] 'move-beginning-of-line-or-text)
     (define-key metaturso-map [remap view-emacs-FAQ] 'find-function)
     metaturso-map)
   "One keymap to rule them all, or close to. This keymap should contain general Emacs
@@ -63,6 +65,17 @@ one or more functions to respond to the event."
   ;; This should deter Emacs from using Windows line endings.
   (setq-default buffer-file-coding-system 'utf-8-unix))
 
+;;;###autoload
+(defun move-beginning-of-line-or-text nil
+    "Toggles the cursor position between `beginning-of-line' and the first
+non-whitespace character on the that line."
+  (interactive)
+  (let ((position (point)))
+    (back-to-indentation)
+    (when (equal position (point))
+      (beginning-of-line))))
+
+;;;###autoload
 (defun other-window-or-prompt (count &optional all-frames)
   "Calls `other-window' as you'd expect from \\[C-x o] with the exception when
 there is an active prompt. In this case the minibuffer
