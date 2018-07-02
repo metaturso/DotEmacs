@@ -1,4 +1,7 @@
 ;; -*- lexical-binding: t; -*-
+
+(package-initialize)
+
 (require 'cl-lib)
 
 (defvar metaturso-minor-mode-map
@@ -19,7 +22,7 @@ key bindings.")
   :init-value t :global t :lighter nil)
 
 ;;;###autoload
-(define-globalized-minor-mode metaturso-minor-mode metaturso-minor-mode t)
+(define-globalized-minor-mode global-metaturso-minor-mode metaturso-minor-mode t)
 
 (defun metaturso-before-save-prog-hook ()
     "A hook to perform various programming cleanup routines before
@@ -46,6 +49,8 @@ one or more functions to respond to the event."
 
   ;; Add mode associations.
   (cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
+
+  (setq custom-file "~/.emacs-custom.el")
 
   ;; Customise Emacs variables.
   (setq inhibit-startup-message t
@@ -95,6 +100,5 @@ the current one that frame will be gain focus."
 (require 'metaturso-grammarian-minor-mode "grammarian-minor-mode.el")
 (add-hook 'wisent-grammar-mode-hook 'metaturso-grammarian-minor-mode)
 (add-hook 'json-mode-hook 'metaturso-grammarian-minor-mode)
-(add-hook 'php-mode-hook 'metaturso-grammarian-minor-mode)
 
 (provide 'metaturso-minor-mode)
