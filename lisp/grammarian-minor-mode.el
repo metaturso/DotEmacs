@@ -19,7 +19,17 @@
 \\{metaturso-grammarian-minor-mode-map}"
   :init-value nil :lighter " Grammarian" :keymap metaturso-grammarian-minor-mode-map
   (semantic-mode)
+  (setq wisent-parse-verbose-flag t)
   (setq wisent-verbose-flag t))
+
+(defun metaturso-grammarian-log-unmatched-syntax (syntax)
+  "Log unmatched syntax to help debugging to the *Messages* buffer
+without cluttering the minibuffer"
+  (let ((inhibit-message t))
+    (message "Unmatched syntax: %s" syntax)
+    ))
+
+(add-hook 'semantic-unmatched-syntax-hook #'metaturso-grammarian-log-unmatched-syntax)
 
 (defun metaturso-grammarian-bovinate-reparse-buffer nil
   "Bovinate the entire buffer."
