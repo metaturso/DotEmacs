@@ -54,6 +54,10 @@ one or more functions to respond to the event."
 
   (setq custom-file "~/.emacs-custom.el")
 
+  ;; Disable audible or visible bell ESC or other events.
+  (setq visible-bell 1)
+  (setq ring-bell-function 'ignore)
+
   ;; Customise Emacs variables.
   (setq inhibit-startup-message t
 	initial-scratch-message nil
