@@ -107,8 +107,12 @@ the current one that frame will be gain focus."
   (normal-top-level-add-to-load-path '("lisp")))
 
 ;; Windows-specific initialisation hook.
-(when (string= 'windows-nt system-type)
+(when (equal 'windows-nt system-type)
   (add-hook 'after-init-hook 'metaturso-windows-after-init-hook))
+
+;; Darwin-specific initialisation hook
+(when (equal 'darwin system-type)
+  (setq-default mac-right-option-modifier nil))
 
 (add-hook 'after-init-hook 'metaturso-after-init-hook)
 (add-hook 'before-save-hook 'metaturso-before-save-hook)
