@@ -52,7 +52,9 @@ one or more functions to respond to the event."
   ;; Add mode associations.
   (cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
 
-  (setq custom-file "~/.emacs-custom.el")
+  ;; Enable all disabled commands.
+  (setq disabled-command-function nil
+	custom-file "~/.emacs-custom.el")
 
   ;; Disable audible or visible bell ESC or other events.
   (setq visible-bell 1)
