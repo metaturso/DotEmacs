@@ -1,31 +1,74 @@
 ;; -*- lexical-binding: t; -*-
 
-(package-initialize)
+;;; Emacs Initialisation
+;; Add the ~/.emacs.d/lisp directory to load-path.
+(let ((default-directory  "~/.emacs.d/")
+      (lexical-binding nil))
+  (normal-top-level-add-to-load-path '("lisp")))
 
 (require 'cl-lib)
+(require 'metaturso-minor-mode)
 
-(defvar metaturso-minor-mode-map
-  (let ((metaturso-map (make-sparse-keymap)))
-    ;; Use buffer-menu instead of list-buffers since it opens in the same window.
-    (define-key metaturso-map [remap list-buffers] 'buffer-menu)
-    ;; Replace C-h C-f with a Emacs self-documenting function finder.
-    (define-key metaturso-map [remap other-window] 'other-window-or-prompt)
-    (define-key metaturso-map [remap move-beginning-of-line] 'move-beginning-of-line-or-text)
-    (define-key metaturso-map [remap view-emacs-FAQ] 'find-function)
-    metaturso-map)
-  "One keymap to rule them all, or close to. This keymap should contain general Emacs
-key bindings.")
+(package-initialize)
 
-;;;###autoload
-(define-minor-mode metaturso-minor-mode
-  "A global minor mode to centralise all of metaturso's Emacs customisations.
+;; Theme
+(load-theme 'adwaita t)
 
-\\{metaturso-minor-mode-map}"
-  :init-value t :global t :lighter nil)
+;; Activate or disable global minor modes.
+(show-paren-mode)
+(blink-cursor-mode -1)
+(tool-bar-mode -1)
 
-;;;###autoload
-(define-globalized-minor-mode global-metaturso-minor-mode metaturso-minor-mode t)
+;; Record window actions and undo/redo with C-{left,right}.
+(winner-mode)
+;; Move between adjacent windows with M-{left,up,right,down}
+(windmove-default-keybindings 'meta)
 
+;; Add auto-mode file associations.
+(cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
+(cl-pushnew '("composer.json\\'" . composer-file-mode) auto-mode-alist)
+
+;; Enable all disabled commands.
+(setq disabled-command-function nil)
+
+;; Write changes made by customize to a separate file.
+(setq custom-file "~/.emacs-custom.el")
+(load-file custom-file)
+
+;; Disable audible or visible bell ESC or other events.
+(setq visible-bell 1)
+(setq ring-bell-function 'ignore)
+
+;; Customise Emacs variables.
+(setq inhibit-startup-message t
+      initial-scratch-message nil
+      default-directory "~/")
+
+;; Load standalone CEDET to work with Semantic.
+(when (and metaturso-ide-use-standalone-cedet metaturso-ide-standalone-cedet-directory)
+  (load-file
+   (expand-file-name "cedet-devel-load.el" metaturso-ide-standalone-cedet-directory)))
+
+;; Operating-system specific changes to the configuration
+(cond
+ ((equal 'windows-nt system-type)
+  (add-hook 'after-init-hook #'metaturso-windows-after-init-hook))
+
+ ((equal 'darwin system-type)
+  (add-hook 'after-init-hook #'metaturso-mac-after-init-hook)))
+
+(add-hook 'before-save-hook #'metaturso-before-save-hook)
+(add-hook 'wisent-grammar-mode-hook #'semantic-mode)
+(add-hook 'prog-mode #'metaturso-keyword-highlighter)
+
+;; For grammar development
+;; Breaks on Emacs for Mac (triggers the nasty grammar compilation issue)
+;; still unsure as to what's causing this.
+;;(require 'metaturso-grammarian-minor-mode "grammarian-minor-mode.el")
+;;(add-hook 'wisent-grammar-mode-hook 'metaturso-grammarian-minor-mode)
+;;(add-hook 'json-mode-hook 'metaturso-grammarian-minor-mode)
+
+;;; Hooks
 (defun metaturso-before-save-prog-hook ()
     "A hook to perform various programming cleanup routines before
 the buffer is saved to its file."
@@ -38,36 +81,6 @@ one or more functions to respond to the event."
 	    (equal 'wisent-grammar-mode major-mode))
     (metaturso-before-save-prog-hook)))
 
-(defun metaturso-after-init-hook ()
-  "Misc configuration that needs to run as soon as Emacs starts."
-  (load-theme 'adwaita t)
-
-  ;; Activate or disable global minor modes.
-  (show-paren-mode)
-  (blink-cursor-mode -1)
-  (tool-bar-mode -1)
-
-  ;; Record window actions and undo/redo with C-{left,right}.
-  (winner-mode)
-  ;; Move between adjacent windows with M-{left,up,right,down}
-  (windmove-default-keybindings 'meta)
-
-  ;; Add mode associations.
-  (cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
-
-  ;; Enable all disabled commands.
-  (setq disabled-command-function nil
-	custom-file "~/.emacs-custom.el")
-
-  ;; Disable audible or visible bell ESC or other events.
-  (setq visible-bell 1)
-  (setq ring-bell-function 'ignore)
-
-  ;; Customise Emacs variables.
-  (setq inhibit-startup-message t
-	initial-scratch-message nil
-	default-directory "~/"))
-
 (defun metaturso-windows-after-init-hook nil
   "Windows configuration hook."
   (setq default-directory "~/Documents/Development/")
@@ -78,7 +91,7 @@ one or more functions to respond to the event."
   "Mac configuration hook."
   (setq-default mac-right-option-modifier nil))
 
-;;;###autoload
+;;; Editing support functions.
 (defun move-beginning-of-line-or-text nil
     "Toggles the cursor position between `beginning-of-line' and the first
 non-whitespace character on the that line."
@@ -88,7 +101,6 @@ non-whitespace character on the that line."
     (when (equal position (point))
       (beginning-of-line))))
 
-;;;###autoload
 (defun other-window-or-prompt (count &optional all-frames)
   "Calls `other-window' as you'd expect from \\[C-x o] with the exception when
 there is an active prompt. In this case the minibuffer
@@ -99,36 +111,9 @@ the current one that frame will be gain focus."
       (unwind-protect
 	  (let* ((minibuf (active-minibuffer-window))
 		 (minibuf-frame (window-frame minibuf)))
-
 	    (unless (equal minibuf-frame (selected-frame))
 	      (select-frame minibuf-frame)
 	      (raise-frame minibuf-frame))
-
 	    (when (window-live-p minibuf)
 	      (select-window minibuf))))
     (other-window count all-frames)))
-
-;;; Initialisation Code
-(let ((default-directory  "~/.emacs.d/")
-      (lexical-binding nil))
-  (normal-top-level-add-to-load-path '("lisp")))
-
-;; Windows-specific initialisation hook.
-(when (equal 'windows-nt system-type)
-  (add-hook 'after-init-hook 'metaturso-windows-after-init-hook))
-
-;; Darwin-specific initialisation hook
-(when (equal 'darwin system-type)
-  (add-hook 'after-init-hook 'metaturso-mac-after-init-hook))
-
-(add-hook 'after-init-hook 'metaturso-after-init-hook)
-(add-hook 'before-save-hook 'metaturso-before-save-hook)
-(add-hook 'wisent-grammar-mode-hook 'semantic-mode)
-(add-hook 'prog-mode 'metaturso-keyword-highlighter)
-
-;; For grammar development
-(require 'metaturso-grammarian-minor-mode "grammarian-minor-mode.el")
-(add-hook 'wisent-grammar-mode-hook 'metaturso-grammarian-minor-mode)
-(add-hook 'json-mode-hook 'metaturso-grammarian-minor-mode)
-
-(provide 'metaturso-minor-mode)
