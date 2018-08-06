@@ -40,10 +40,12 @@ one or more functions to respond to the event."
 
 (defun metaturso-after-init-hook ()
   "Misc configuration that needs to run as soon as Emacs starts."
-  (tool-bar-mode -1)
+  (load-theme 'adwaita t)
+
   ;; Activate or disable global minor modes.
   (show-paren-mode)
   (blink-cursor-mode -1)
+  (tool-bar-mode -1)
 
   ;; Record window actions and undo/redo with C-{left,right}.
   (winner-mode)
@@ -67,10 +69,14 @@ one or more functions to respond to the event."
 	default-directory "~/"))
 
 (defun metaturso-windows-after-init-hook nil
-  "Windows configuration."
+  "Windows configuration hook."
   (setq default-directory "~/Documents/Development/")
   ;; This should deter Emacs from using Windows line endings.
   (setq-default buffer-file-coding-system 'utf-8-unix))
+
+(defun metaturso-mac-after-init-hook nil
+  "Mac configuration hook."
+  (setq-default mac-right-option-modifier nil))
 
 ;;;###autoload
 (defun move-beginning-of-line-or-text nil
@@ -113,8 +119,7 @@ the current one that frame will be gain focus."
 
 ;; Darwin-specific initialisation hook
 (when (equal 'darwin system-type)
-  (load-theme 'adwaita t)
-  (setq-default mac-right-option-modifier nil))
+  (add-hook 'after-init-hook 'metaturso-mac-after-init-hook))
 
 (add-hook 'after-init-hook 'metaturso-after-init-hook)
 (add-hook 'before-save-hook 'metaturso-before-save-hook)
