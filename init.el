@@ -40,6 +40,7 @@ one or more functions to respond to the event."
 
 (defun metaturso-after-init-hook ()
   "Misc configuration that needs to run as soon as Emacs starts."
+  (tool-bar-mode -1)
   ;; Activate or disable global minor modes.
   (show-paren-mode)
   (blink-cursor-mode -1)
@@ -112,6 +113,7 @@ the current one that frame will be gain focus."
 
 ;; Darwin-specific initialisation hook
 (when (equal 'darwin system-type)
+  (load-theme 'adwaita t)
   (setq-default mac-right-option-modifier nil))
 
 (add-hook 'after-init-hook 'metaturso-after-init-hook)
