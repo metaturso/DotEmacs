@@ -33,7 +33,8 @@
 
 ;; Write changes made by customize to a separate file.
 (setq custom-file "~/.emacs-custom.el")
-(load-file custom-file)
+(when (file-exists-p custom-file)
+  (load-file custom-file))
 
 ;; Disable audible or visible bell ESC or other events.
 (setq visible-bell 1)
