@@ -1,8 +1,9 @@
-auto-savelist/
+/auto-savelist/
+/eshell/
+/elpa/
+/.cask/
 *~
 .*#
 *.elc
-eshell/
-elpa/
 ede-projects.el
 srecode-map.el
