@@ -9,7 +9,18 @@
 (require 'cl-lib)
 (require 'metaturso-minor-mode)
 
+;; Operating-system specific changes to the configuration
+(cond
+ ((equal 'windows-nt system-type)
+  (add-hook 'after-init-hook #'metaturso-windows-after-init-hook))
+
+ ((equal 'darwin system-type)
+  (require 'cask "/usr/local/share/emacs/site-lisp/cask/cask.el")
+  (add-hook 'after-init-hook #'metaturso-mac-after-init-hook)))
+
 (package-initialize)
+(when (featurep 'cask)
+  (cask-initialize))
 
 ;; Theme
 (load-theme 'adwaita t)
@@ -26,7 +37,9 @@
 
 ;; Add auto-mode file associations.
 (cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
+(cl-pushnew '("Cask\\'" . emacs-lisp-mode) auto-mode-alist)
 (cl-pushnew '("composer.json\\'" . composer-file-mode) auto-mode-alist)
+(cl-pushnew '("composer.lock\\'" . composer-file-mode) auto-mode-alist)
 
 ;; Enable all disabled commands.
 (setq disabled-command-function nil)
@@ -50,13 +63,7 @@
   (load-file
    (expand-file-name "cedet-devel-load.el" metaturso-ide-standalone-cedet-directory)))
 
-;; Operating-system specific changes to the configuration
-(cond
- ((equal 'windows-nt system-type)
-  (add-hook 'after-init-hook #'metaturso-windows-after-init-hook))
-
- ((equal 'darwin system-type)
-  (add-hook 'after-init-hook #'metaturso-mac-after-init-hook)))
+(global-ede-mode 1)
 
 (add-hook 'before-save-hook #'metaturso-before-save-hook)
 (add-hook 'wisent-grammar-mode-hook #'semantic-mode)
@@ -67,7 +74,7 @@
 ;; still unsure as to what's causing this.
 ;;(require 'metaturso-grammarian-minor-mode "grammarian-minor-mode.el")
 ;;(add-hook 'wisent-grammar-mode-hook 'metaturso-grammarian-minor-mode)
-;;(add-hook 'json-mode-hook 'metaturso-grammarian-minor-mode)
+;;(add-hook 'composer-file-mode-hook 'metaturso-grammarian-minor-mode)
 
 ;;; Hooks
 (defun metaturso-before-save-prog-hook ()
