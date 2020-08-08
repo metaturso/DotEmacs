@@ -23,7 +23,7 @@
   (cask-initialize))
 
 ;; Theme
-(load-theme 'adwaita t)
+(load-theme 'wombat t)
 
 ;; Activate or disable global minor modes.
 (show-paren-mode)
@@ -57,6 +57,9 @@
 (setq inhibit-startup-message t
       initial-scratch-message nil
       default-directory "~/")
+
+;; Preload the prompts so that M-p can be used instead of typing.
+(setq yes-or-no-p-history '("yes" "no"))
 
 ;; Load standalone CEDET to work with Semantic.
 (when (and metaturso-ide-use-standalone-cedet metaturso-ide-standalone-cedet-directory)
