@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 (defgroup metaturso-ide nil
   "Emacs IDE configuration."
   :prefix "metaturso-ide-"
