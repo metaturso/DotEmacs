@@ -1,9 +1,11 @@
 ;; -*- lexical-binding: t; -*-
 
-(setq metaturso-package-list '())
+(defvar metaturso-package-list nil
+  "List of Emacs packages used by this configuration.
+This list is used by `el-get' to sync packages.")
 
-(push "esup" metaturso-package-list)
 (push "cedet" metaturso-package-list)
+(push "feature-mode" metaturso-package-list)
 
 ;;; Emacs Initialisation
 ;; Add directories to load-path.
