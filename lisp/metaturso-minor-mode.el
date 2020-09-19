@@ -45,4 +45,47 @@ key bindings which are useful across a variety of major modes.")
   "Turns on `metaturso-minor-mode'"
   (metaturso-minor-mode 1))
 
+(add-hook 'before-save-hook #'metaturso-before-save-hook)
+
+;; Hooks
+(defun metaturso-before-save-prog-hook ()
+    "A hook to perform various programming cleanup routines before
+the buffer is saved to its file."
+    (whitespace-cleanup))
+
+(defun metaturso-before-save-hook ()
+  "A generic before-save hook used. Checks the current major-mode before calling
+one or more functions to respond to the event."
+  (when (or (derived-mode-p 'prog-mode)
+	    (equal 'wisent-grammar-mode major-mode))
+    (metaturso-before-save-prog-hook)))
+
+;;; Editing support functions.
+(defun move-beginning-of-line-or-text nil
+  "Toggles the cursor position between `beginning-of-line' and the first
+non-whitespace character on the that line. Always jumps to the beginning
+of the line first, press again to jump to the indentation point."
+  (interactive)
+  (let ((position (point)))
+    (beginning-of-line)
+    (when (equal position (point))
+      (back-to-indentation))))
+
+(defun other-window-or-prompt (count &optional all-frames)
+  "Calls `other-window' as you'd expect from \\[C-x o] with the exception when
+there is an active prompt. In this case the minibuffer
+window will become active. If the prompt was active on a different frame than
+the current one that frame will be gain focus."
+  (interactive "p")
+  (if (minibuffer-prompt)
+      (unwind-protect
+	  (let* ((minibuf (active-minibuffer-window))
+		 (minibuf-frame (window-frame minibuf)))
+	    (unless (equal minibuf-frame (selected-frame))
+	      (select-frame minibuf-frame)
+	      (raise-frame minibuf-frame))
+	    (when (window-live-p minibuf)
+	      (select-window minibuf))))
+    (other-window count all-frames)))
+
 (provide 'metaturso-minor-mode)

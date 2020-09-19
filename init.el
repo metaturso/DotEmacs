@@ -1,14 +1,19 @@
 ;; -*- lexical-binding: t; -*-
 
+(setq metaturso-package-list '())
+
+(push "esup" metaturso-package-list)
+(push "cedet" metaturso-package-list)
+
 ;;; Emacs Initialisation
-;; Add the ~/.emacs.d/lisp directory to load-path.
-(let ((dirs (list "lisp" "el-get/el-get/"))
-      (default-directory "~/.emacs.d"))
+;; Add directories to load-path.
+(let ((dirs (list "lisp" "el-get/el-get/")))
   (defun add-to-load-path (dir)
     "Adds DIR directory to the `load-path'"
-    (push (expand-file-name dir default-directory) load-path))
+    (push (expand-file-name dir "~/.emacs.d") load-path))
   (mapc 'add-to-load-path dirs))
 
+;; El-get bootstrap.
 (unless (require 'el-get nil 'noerror)
   (with-current-buffer
       (url-retrieve-synchronously
@@ -16,22 +21,9 @@
     (goto-char (point-max))
     (eval-print-last-sexp)))
 
-(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
-(el-get 'sync)
-
-(require 'cl-lib)
-(require 'metaturso-minor-mode)
-
-;; Operating-system specific changes to the configuration
-(cond
- ((equal 'windows-nt system-type)
-  (add-hook 'after-init-hook #'metaturso-windows-after-init-hook))
-
- ((equal 'darwin system-type)
-  (add-hook 'after-init-hook #'metaturso-mac-after-init-hook)))
-
-(when (featurep 'cask)
-  (cask-initialize))
+(add-to-list 'el-get-recipe-path "~/.emacs.d/recipes")
+(el-get-cleanup metaturso-package-list)
+(el-get 'sync metaturso-package-list)
 
 ;; Theme
 (load-theme 'wombat t)
@@ -72,16 +64,26 @@
 ;; Preload the prompts so that M-p can be used instead of typing.
 (setq yes-or-no-p-history '("yes" "no"))
 
+(require 'cl-lib)
+(require 'metaturso-minor-mode)
+
+;; Operating-system specific changes to the configuration
+(cond
+ ((equal 'windows-nt system-type)
+  (add-hook 'after-init-hook #'metaturso-windows-after-init-hook))
+
+ ((equal 'darwin system-type)
+  (add-hook 'after-init-hook #'metaturso-mac-after-init-hook)))
+
 ;; Load standalone CEDET to work with Semantic.
+;; TODO: Replace this with an el-get's recipe for CEDET.
 (when (and metaturso-ide-use-standalone-cedet metaturso-ide-standalone-cedet-directory)
   (load-file
    (expand-file-name "cedet-devel-load.el" metaturso-ide-standalone-cedet-directory)))
 
 (global-ede-mode 1)
 
-(add-hook 'before-save-hook #'metaturso-before-save-hook)
 (add-hook 'wisent-grammar-mode-hook #'semantic-mode)
-(add-hook 'prog-mode #'metaturso-keyword-highlighter)
 
 ;; For grammar development
 ;; Breaks on Emacs for Mac (triggers the nasty grammar compilation issue)
@@ -91,52 +93,12 @@
 ;;(add-hook 'composer-file-mode-hook 'metaturso-grammarian-minor-mode)
 
 ;;; Hooks
-(defun metaturso-before-save-prog-hook ()
-    "A hook to perform various programming cleanup routines before
-the buffer is saved to its file."
-    (whitespace-cleanup))
-
-(defun metaturso-before-save-hook ()
-  "A generic before-save hook used. Checks the current major-mode before calling
-one or more functions to respond to the event."
-  (when (or (derived-mode-p 'prog-mode)
-	    (equal 'wisent-grammar-mode major-mode))
-    (metaturso-before-save-prog-hook)))
-
-(defun metaturso-windows-after-init-hook nil
-  "Windows configuration hook."
-  (setq default-directory "~/Documents/Development/")
-  ;; This should deter Emacs from using Windows line endings.
-  (setq-default buffer-file-coding-system 'utf-8-unix))
-
 (defun metaturso-mac-after-init-hook nil
   "Mac configuration hook."
   (setq-default mac-right-option-modifier nil))
 
-;;; Editing support functions.
-(defun move-beginning-of-line-or-text nil
-  "Toggles the cursor position between `beginning-of-line' and the first
-non-whitespace character on the that line. Always jumps to the beginning
-of the line first, press again to jump to the indentation point."
-  (interactive)
-  (let ((position (point)))
-    (beginning-of-line)
-    (when (equal position (point))
-      (back-to-indentation))))
-
-(defun other-window-or-prompt (count &optional all-frames)
-  "Calls `other-window' as you'd expect from \\[C-x o] with the exception when
-there is an active prompt. In this case the minibuffer
-window will become active. If the prompt was active on a different frame than
-the current one that frame will be gain focus."
-  (interactive "p")
-  (if (minibuffer-prompt)
-      (unwind-protect
-	  (let* ((minibuf (active-minibuffer-window))
-		 (minibuf-frame (window-frame minibuf)))
-	    (unless (equal minibuf-frame (selected-frame))
-	      (select-frame minibuf-frame)
-	      (raise-frame minibuf-frame))
-	    (when (window-live-p minibuf)
-	      (select-window minibuf))))
-    (other-window count all-frames)))
+(defun metaturso-windows-after-init-hook nil
+  "Windows configuration hook."
+  (setq default-directory "~/Documents/")
+  ;; This should deter Emacs from using Windows line endings.
+  (setq-default buffer-file-coding-system 'utf-8-unix))
