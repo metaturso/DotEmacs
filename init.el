@@ -2,12 +2,12 @@
 
 ;;; Emacs Initialisation
 ;; Add the ~/.emacs.d/lisp directory to load-path.
-(let ((default-directory  "~/.emacs.d/")
-      (lexical-binding nil))
-  (normal-top-level-add-to-load-path '("lisp")))
-
-;;; El-Get integration
-(add-to-list 'load-path (expand-file-name "el-get/" default-directory))
+(let ((dirs (list "lisp" "el-get/el-get/"))
+      (default-directory "~/.emacs.d"))
+  (defun add-to-load-path (dir)
+    "Adds DIR directory to the `load-path'"
+    (push (expand-file-name dir default-directory) load-path))
+  (mapc 'add-to-load-path dirs))
 
 (unless (require 'el-get nil 'noerror)
   (with-current-buffer
@@ -16,7 +16,7 @@
     (goto-char (point-max))
     (eval-print-last-sexp)))
 
-(add-to-list 'el-get-recipe-path (expand-file-name "el-get-user/recipes" default-directory))
+(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
 (el-get 'sync)
 
 (require 'cl-lib)
@@ -28,10 +28,8 @@
   (add-hook 'after-init-hook #'metaturso-windows-after-init-hook))
 
  ((equal 'darwin system-type)
-  (require 'cask "/usr/local/share/emacs/site-lisp/cask/cask.el")
   (add-hook 'after-init-hook #'metaturso-mac-after-init-hook)))
 
-(package-initialize)
 (when (featurep 'cask)
   (cask-initialize))
 
