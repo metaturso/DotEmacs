@@ -1,9 +1,11 @@
 /auto-savelist/
 /eshell/
 /elpa/
+/el-get/
 /.cask/
 *~
-.*#
+*\#*
 *.elc
+session.*
 ede-projects.el
 srecode-map.el

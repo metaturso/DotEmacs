@@ -104,13 +104,14 @@ one or more functions to respond to the event."
 
 ;;; Editing support functions.
 (defun move-beginning-of-line-or-text nil
-    "Toggles the cursor position between `beginning-of-line' and the first
-non-whitespace character on the that line."
+  "Toggles the cursor position between `beginning-of-line' and the first
+non-whitespace character on the that line. Always jumps to the beginning
+of the line first, press again to jump to the indentation point."
   (interactive)
   (let ((position (point)))
-    (back-to-indentation)
+    (beginning-of-line)
     (when (equal position (point))
-      (beginning-of-line))))
+      (back-to-indentation))))
 
 (defun other-window-or-prompt (count &optional all-frames)
   "Calls `other-window' as you'd expect from \\[C-x o] with the exception when
