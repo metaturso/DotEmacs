@@ -1,18 +1,17 @@
 ;; -*- lexical-binding: t; -*-
-
-(defvar metaturso-package-list nil
-  "List of Emacs packages used by this configuration.
-This list is used by `el-get' to sync packages.")
-
-(push "cedet" metaturso-package-list)
-(push "feature-mode" metaturso-package-list)
+(require 'cl)
 
 ;;; Emacs Initialisation
 ;; Add directories to load-path.
 (let ((dirs (list "lisp" "el-get/el-get/")))
+  ;; Remove builtin CEDET from the load-path.
+  ;; TODO: Move this inside el-get configuration code.
+  (setq load-path (remove-if (lambda (path) (string-match-p "cedet" path)) load-path))
+
+  ;; Add custom lisp to the load-path.
   (defun add-to-load-path (dir)
     "Adds DIR directory to the `load-path'"
-    (push (expand-file-name dir "~/.emacs.d") load-path))
+    (push (expand-file-name dir user-emacs-directory) load-path))
   (mapc 'add-to-load-path dirs))
 
 ;; El-get bootstrap.
@@ -23,9 +22,14 @@ This list is used by `el-get' to sync packages.")
     (goto-char (point-max))
     (eval-print-last-sexp)))
 
-(add-to-list 'el-get-recipe-path "~/.emacs.d/recipes")
-(el-get-cleanup metaturso-package-list)
-(el-get 'sync metaturso-package-list)
+(push (expand-file-name "recipes" user-emacs-directory) el-get-recipe-path)
+
+(el-get-bundle feature-mode)
+(el-get-bundle highlight-parentheses)
+(el-get-bundle cedet
+  (global-ede-mode 1))
+
+(el-get 'sync)
 
 ;; Theme
 (load-theme 'wombat t)
@@ -76,14 +80,6 @@ This list is used by `el-get' to sync packages.")
 
  ((equal 'darwin system-type)
   (add-hook 'after-init-hook #'metaturso-mac-after-init-hook)))
-
-;; Load standalone CEDET to work with Semantic.
-;; TODO: Replace this with an el-get's recipe for CEDET.
-(when (and metaturso-ide-use-standalone-cedet metaturso-ide-standalone-cedet-directory)
-  (load-file
-   (expand-file-name "cedet-devel-load.el" metaturso-ide-standalone-cedet-directory)))
-
-(global-ede-mode 1)
 
 (add-hook 'wisent-grammar-mode-hook #'semantic-mode)
 

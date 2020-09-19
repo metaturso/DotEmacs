@@ -1,0 +1,14 @@
+(:name cedet
+       :type github
+       :pkgname "metaturso/cedet"
+       :branch "master"
+       :website "http://cedet.sourceforge.net/"
+       :description "CEDET is a Collection of Emacs Development Environment Tools written with the end goal of creating an advanced development environment in Emacs."
+       :build
+       `(("sh" "-c" "touch `find . -name Makefile`")
+	 ("make" ,(format "EMACS=%s" (shell-quote-argument el-get-emacs)) "clean-all")
+	 (,el-get-emacs "-batch" "-Q" "-l" "cedet-build.el" "-f" "cedet-build"))
+       :prepare
+       (unless (and (featurep 'cedet-devel-load)
+		    (featurep 'eieio))
+	 (load (expand-file-name "cedet-devel-load.el" pdir))))
