@@ -6,6 +6,19 @@
       (lexical-binding nil))
   (normal-top-level-add-to-load-path '("lisp")))
 
+;;; El-Get integration
+(add-to-list 'load-path (expand-file-name "el-get/" default-directory))
+
+(unless (require 'el-get nil 'noerror)
+  (with-current-buffer
+      (url-retrieve-synchronously
+       "https://raw.githubusercontent.com/dimitri/el-get/master/el-get-install.el")
+    (goto-char (point-max))
+    (eval-print-last-sexp)))
+
+(add-to-list 'el-get-recipe-path (expand-file-name "el-get-user/recipes" default-directory))
+(el-get 'sync)
+
 (require 'cl-lib)
 (require 'metaturso-minor-mode)
 
