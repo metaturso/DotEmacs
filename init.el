@@ -26,8 +26,10 @@
 
 (el-get-bundle feature-mode)
 (el-get-bundle highlight-parentheses)
-(el-get-bundle cedet
-  (global-ede-mode 1))
+
+;; TODO: Update the CEDET recipe to compile CEDET on Windows
+(unless (equal 'windows-nt system-type)
+  (el-get-bundle cedet (global-ede-mode 1)))
 
 (el-get 'sync)
 
