@@ -1,20 +1,21 @@
 ;; -*- lexical-binding: t; -*-
-(require 'cl)
+(require 'cl-lib)
+
+(load (expand-file-name "startup-minimal" user-emacs-directory) nil t nil)
 
 ;;; Emacs Initialisation
 ;; Add directories to load-path.
 (let ((dirs (list "lisp" "el-get/el-get/")))
   ;; Remove builtin CEDET from the load-path.
   ;; TODO: Move this inside el-get configuration code.
-  (setq load-path (remove-if (lambda (path) (string-match-p "cedet" path)) load-path))
+  (setq load-path (cl-remove-if (lambda (path) (string-match-p "cedet" path)) load-path))
 
   ;; Add custom lisp to the load-path.
-  (defun add-to-load-path (dir)
+  (defun add-to-load-path (dir)`
     "Adds DIR directory to the `load-path'"
     (push (expand-file-name dir user-emacs-directory) load-path))
   (mapc 'add-to-load-path dirs))
 
-;; El-get bootstrap.
 (unless (require 'el-get nil 'noerror)
   (with-current-buffer
       (url-retrieve-synchronously
@@ -22,16 +23,15 @@
     (goto-char (point-max))
     (eval-print-last-sexp)))
 
-(push (expand-file-name "recipes" user-emacs-directory) el-get-recipe-path)
+(cl-pushnew (expand-file-name "recipes" user-emacs-directory) el-get-recipe-path)
 
+;;; Package configuration
+(el-get-bundle yaml-mode)
 (el-get-bundle feature-mode)
 (el-get-bundle highlight-parentheses)
 
-;; TODO: Update the CEDET recipe to compile CEDET on Windows
 (unless (equal 'windows-nt system-type)
   (el-get-bundle cedet (global-ede-mode 1)))
-
-(el-get 'sync)
 
 ;; Theme
 (load-theme 'wombat t)
@@ -47,10 +47,7 @@
 (windmove-default-keybindings 'meta)
 
 ;; Add auto-mode file associations.
-(cl-pushnew '("\\.php\\'" . php-mode) auto-mode-alist)
 (cl-pushnew '("Cask\\'" . emacs-lisp-mode) auto-mode-alist)
-(cl-pushnew '("composer.json\\'" . composer-file-mode) auto-mode-alist)
-(cl-pushnew '("composer.lock\\'" . composer-file-mode) auto-mode-alist)
 
 ;; Enable all disabled commands.
 (setq disabled-command-function nil)
@@ -60,19 +57,6 @@
 (when (file-exists-p custom-file)
   (load-file custom-file))
 
-;; Disable audible or visible bell ESC or other events.
-(setq visible-bell 1)
-(setq ring-bell-function 'ignore)
-
-;; Customise Emacs variables.
-(setq inhibit-startup-message t
-      initial-scratch-message nil
-      default-directory "~/")
-
-;; Preload the prompts so that M-p can be used instead of typing.
-(setq yes-or-no-p-history '("yes" "no"))
-
-(require 'cl-lib)
 (require 'metaturso-minor-mode)
 
 ;; Operating-system specific changes to the configuration
