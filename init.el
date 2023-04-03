@@ -38,8 +38,6 @@
 
 ;; Activate or disable global minor modes.
 (show-paren-mode)
-(blink-cursor-mode -1)
-(tool-bar-mode -1)
 
 ;; Record window actions and undo/redo with C-{left,right}.
 (winner-mode)

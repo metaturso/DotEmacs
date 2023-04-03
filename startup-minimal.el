@@ -17,3 +17,8 @@
 
 ;; Preload the prompts so that M-p can be used instead of typing.
 (setq yes-or-no-p-history '("yes" "no"))
+
+;; Customise frame
+(blink-cursor-mode -1)
+(tool-bar-mode -1)
+(menu-bar-mode -1)
